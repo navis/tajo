@@ -29,11 +29,13 @@ import org.apache.tajo.plan.serder.PlanGsonHelper;
 import org.apache.tajo.plan.serder.PlanProto;
 import org.apache.tajo.storage.Tuple;
 
+import java.util.Iterator;
+
 /**
  * An annotated expression which includes actual data domains.
  * It is also used for evaluation.
  */
-public abstract class EvalNode implements Cloneable, GsonObject, ProtoObject<PlanProto.EvalNodeTree> {
+public abstract class EvalNode implements Cloneable, GsonObject, ProtoObject<PlanProto.EvalNodeTree>, Iterable<EvalNode> {
 	@Expose protected EvalType type;
 
   public EvalNode() {
@@ -78,5 +80,16 @@ public abstract class EvalNode implements Cloneable, GsonObject, ProtoObject<Pla
   @Override
   public PlanProto.EvalNodeTree getProto() {
     return EvalNodeSerializer.serialize(this);
+  }
+
+  @Override
+  public Iterator<EvalNode> iterator() {
+    final int numChild = childNum();
+    return new Iterator<EvalNode>() {
+      private int index;
+      public boolean hasNext() { return index < numChild; }
+      public EvalNode next() { return getChild(index); }
+      public void remove() { throw new UnsupportedOperationException("remove"); }
+    };
   }
 }
